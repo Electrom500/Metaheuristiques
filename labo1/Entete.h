@@ -1,5 +1,6 @@
 #ifndef __ENTETE_H_
 #define __ENTETE_H_
+#define INT_MAX 2147483647
 
 #include <cstdio>
 #include <cstdlib> 
@@ -18,30 +19,30 @@ enum TProblemType { MIN, MAX };					//** Definition du sens de l'optimisation du
 struct TProblem									//**Definition du probleme:
 {
 	std::string Nom;							//**Nom du fichier de donnees
-	int N;										//**Taille du probleme: Nombre de tâches
-	std::vector<int> Temps;						//**Temps de réalisation pour effectuer une tâche. NB: Tableau de 0 à N-1
-	std::vector<int> Poids;						//**Poids (importance) de la tâche. NB: Tableau de 0 à N-1
-	std::vector<int> DateDue;					//**Date due (échéance) de la tâche. NB: Tableau de 0 à N-1
+	int N;										//**Taille du probleme: Nombre de tï¿½ches
+	std::vector<int> Temps;						//**Temps de rï¿½alisation pour effectuer une tï¿½che. NB: Tableau de 0 ï¿½ N-1
+	std::vector<int> Poids;						//**Poids (importance) de la tï¿½che. NB: Tableau de 0 ï¿½ N-1
+	std::vector<int> DateDue;					//**Date due (ï¿½chï¿½ance) de la tï¿½che. NB: Tableau de 0 ï¿½ N-1
 	TProblemType Type = MIN;					//**Type du probleme (e.g.Maximisation ou Minimisation)
 };
 
 struct TSolution						//**Definition d'une solution: 
 {
-	std::vector <int> Seq;				//**Indique la séquence de réalisation des tâches. NB: Tableau de 0 a N-1
-	long FctObj = INT_MAX;				//**Valeur de la fonction obj: Sommation des retards pondérés
+	std::vector <int> Seq;				//**Indique la sï¿½quence de rï¿½alisation des tï¿½ches. NB: Tableau de 0 a N-1
+	long FctObj = INT_MAX;				//**Valeur de la fonction obj: Sommation des retards pondï¿½rï¿½s
 	bool Valide = false;				//**Etat de validite de la solution (presence de chacune des unites (sans doublons) + longueur de la solution + domaine admissible des variables)
 	int NbEvaltoGet;					//**Nombre d'evalutions de solutions necessaires pour trouver cette solution... pour estimer convergence
-	std::vector<int> Fin;				//**Temps de terminaison d'une tâche dans la séquence
-	std::vector<int> Retard;			//**Indique le nombre d'unités de temps qu'une tâche est réalisée en retard: Max {0, Fin-DateDue}
-	std::vector<int> wRetard;			//**Calcul le retard pondéré pour une tâche (Retard*Poids)
+	std::vector<int> Fin;				//**Temps de terminaison d'une tï¿½che dans la sï¿½quence
+	std::vector<int> Retard;			//**Indique le nombre d'unitï¿½s de temps qu'une tï¿½che est rï¿½alisï¿½e en retard: Max {0, Fin-DateDue}
+	std::vector<int> wRetard;			//**Calcul le retard pondï¿½rï¿½ pour une tï¿½che (Retard*Poids)
 };
 
 struct TAlgo							//**Definition des parametres de l'algorithme:
 {
 	int		CptEval = 0;				//**COMPTEUR DU NOMBRE DE SOLUTIONS EVALUEES. SERT POUR CRITERE D'ARRET
 	int		NB_EVAL_MAX;				//**CRITERE D'ARRET: MAXIMUM "NB_EVAL_MAX" EVALUATIONS
-	int		TailleVoisinage;			//**Nombre de solutions voisines générées à chaque itération
-	long	FctObjSolDepart;			//**Valeur de la fonction objectif de la solution au départ de l'algorithme
+	int		TailleVoisinage;			//**Nombre de solutions voisines gï¿½nï¿½rï¿½es ï¿½ chaque itï¿½ration
+	long	FctObjSolDepart;			//**Valeur de la fonction objectif de la solution au dï¿½part de l'algorithme
 };
 
 #endif
