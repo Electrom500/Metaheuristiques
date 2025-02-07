@@ -1,4 +1,4 @@
-#define OS_LINUX // Either define OS_LINUX or OS_WINDOWS
+#define OS_WINDOWS // Either define OS_LINUX or OS_WINDOWS
 
 #include "Entete.h"
 
@@ -309,12 +309,18 @@ TSolution AppliquerVoisinageOriente(const TSolution uneSol, TProblem unProb, TAl
 // Cette fonction crée un fichier CSV ou ajoute à ce fichier les informations de la solution finale trouvée
 // Ces informations sont formatées en CSV de façon à faciliter l'analyse par un programme exerne
 void AjouterResultatsFichierCSV(const TSolution uneSol, TProblem unProb, TAlgo unAlgo, std::string FileName, int MethodeVoisinage) {
-    // Ouvrir le fichier en mode "append"
+    // Vérifier si le fichier existe
+	std::ifstream ReadFileStream;
+	ReadFileStream.open(FileName);
+	bool FileExists = ReadFileStream.good();
+	ReadFileStream.close();
+	
+	// Ouvrir le fichier en mode "append"
     std::ofstream FileStream;
     FileStream.open(FileName, std::ios::app);
 
-    // Si la position du stream == 0, alors c'est la première fois qu'on l'ouvre
-    if (FileStream.tellp() == 0) {
+    // Si c'est la première fois qu'on ouvre le fichier, on écrit aussi l'entête
+    if (!FileExists) {
         FileStream << "Nom,N,NbVoisins,MethodeVoisinage,TotalEval,MaxEval,FctObjDepart,FctObjFinale,Etat,EvalPourTrouver,Seq" << std::endl;
     }
 
