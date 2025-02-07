@@ -11,3 +11,9 @@ wt100-56.txt 5 10000
 wt100-56.txt 5 10000 2
 wt100-56.txt 5 10000 0 10
 wt100-56.txt 5 10000 0 10 resultats_wt100-56.csv
+
+
+Nous avons essayé d'exécuter le fichier en mode "debug" et "release" mais pour une
+raison qui nous est inconnue, le programmes donne une erreur en "debug" alors qu'il
+fonctionne parfaitement en "release". Il faudrait investiguer davantage pour régler
+l'erreur en "debug", mais elle semble impliquer des DLL externes à ce projet.
