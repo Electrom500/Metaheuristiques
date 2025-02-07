@@ -1,0 +1,13 @@
+Pour exécuter le projet, il faut utiliser les arguments suivants:
+- fichier d'instance (ex: wt100-56.txt)
+- taille du voisinage (ex: 5)
+- nombre maximal d'évaluations de la fonction objectif (ex: 10000)
+- méthode de voisinage choisie (optionel, ex: 0)
+- nombre de solutions souhaitées (optionel, ex: 10)
+- fichier dans lequel les résultats sont écrits (optionel, ex: resultats.csv)
+
+Voici quelques exemples d'arguments qui fonctionnent:
+wt100-56.txt 5 10000
+wt100-56.txt 5 10000 2
+wt100-56.txt 5 10000 0 10
+wt100-56.txt 5 10000 0 10 resultats_wt100-56.csv
