@@ -2,11 +2,13 @@
 
 #include <cmath>
 
-// Membres de l'équipe H01 :
+// Membres de l'ï¿½quipe H01 :
 // - Damien Santerne
 // - Maxime Hardy
 // - Niels Kristen
 
+// Sur windows, on load les DLL. Sur linux, on importe ProcesseurUnique.h
+#ifdef _WIN32
 #pragma comment (lib,"RecuitDLL.lib")  
 //%%%%%%%%%%%%%%%%%%%%%%%%% IMPORTANT: %%%%%%%%%%%%%%%%%%%%%%%%% 
 //Le fichier de probleme (.txt) et les fichiers de la DLL (RecuitDLL.dll et RecuitDLL.lib) doivent se trouver dans le repertoire courant du projet pour une execution a l'aide du compilateur. 
@@ -23,7 +25,7 @@ extern "C" _declspec(dllimport) void LectureProbleme(std::string FileName, TProb
 //DESCRIPTION: Affichage a l'ecran permettant de voir si les donnees du fichier probleme ont ete lues correctement
 extern "C" _declspec(dllimport) void AfficherProbleme(TProblem unProb);
 
-//DESCRIPTION: Affichage d'une solution a l'ecran (avec ou sans détails des calculs)
+//DESCRIPTION: Affichage d'une solution a l'ecran (avec ou sans dï¿½tails des calculs)
 extern "C" _declspec(dllimport) void AfficherSolution(const TSolution uneSol, TProblem unProb, std::string Titre, bool AvecCalcul = false);
 
 //DESCRIPTION:	Evaluation de la fonction objectif d'une solution et MAJ du compteur d'evaluations. La fonction objectif represente la somme des retards ponderes de la sequence.
@@ -41,6 +43,9 @@ extern "C" _declspec(dllimport) void AfficherResultatsFichier(const TSolution un
 
 //DESCRIPTION:	Liberation de la memoire allouee dynamiquement pour les differentes structures en parametre
 extern "C" _declspec(dllimport) void	LibererMemoireFinPgm(TSolution uneCourante, TSolution uneNext, TSolution uneBest, TProblem unProb);
+#else
+#include "ProcesseurUnique.h"
+#endif
 
 //*****************************************************************************************
 // Prototype des fonctions locales 
@@ -89,16 +94,16 @@ int main(int NbParam, char *Param[])
 	//**Enregistrement qualite solution de depart
 	LAlgo.FctObjSolDepart = Courante.FctObj;
 
-	// Initialisation de la "meilleure solution à date"
+	// Initialisation de la "meilleure solution ï¿½ date"
 	Best = Courante;
 
-	// Initialisation de la température courante
+	// Initialisation de la tempï¿½rature courante
 	LAlgo.TemperatureCourante = LAlgo.TemperatureInitiale;
 
-	// Variable sur le nombre d'évaluations par paliers
+	// Variable sur le nombre d'ï¿½valuations par paliers
 	int NbEvalPalier = LAlgo.NB_EVAL_MAX / LAlgo.NbPalier;
 
-	// Variable pour la valeur à atteindre avant de changer de palier de température
+	// Variable pour la valeur ï¿½ atteindre avant de changer de palier de tempï¿½rature
 	int ProchainPalier = NbEvalPalier;
 	
 	do
@@ -109,13 +114,13 @@ int main(int NbParam, char *Param[])
 			//AfficherSolution(Courante, LeProb, "COURANTE: ", false);
 			//AfficherSolution(Next, LeProb, "NEXT: ", false);
 			LAlgo.Delta = Next.FctObj - Courante.FctObj;
-			if (LAlgo.Delta < 0)	//**deplacement amelioration (nous pourrions également considerer l'egalite)
+			if (LAlgo.Delta < 0)	//**deplacement amelioration (nous pourrions ï¿½galement considerer l'egalite)
 			{
 				Courante = Next;
 				// cout << "CPT_EVAL: " << LAlgo.CptEval << "\t\tNEW COURANTE/OBJ: " << Courante.FctObj << endl;
 				//AfficherSolution(Courante, LeProb, "NOUVELLE COURANTE: ", false);
 
-				// S'il y a amélioration de la fonction objectif, il y a une possibilité que la nouvelle solution soit la meilleure
+				// S'il y a amï¿½lioration de la fonction objectif, il y a une possibilitï¿½ que la nouvelle solution soit la meilleure
 				// On doit tester si elle est meilleure ou non
 				if (Courante.FctObj < Best.FctObj)
 				{
@@ -127,12 +132,12 @@ int main(int NbParam, char *Param[])
 				// Calcul du seuil d'acceptation de la solution
 				double seuil = std::exp(-LAlgo.Delta / LAlgo.TemperatureCourante);
 
-				// On tire un nombre aléatoire réel entre 0 et 1
+				// On tire un nombre alï¿½atoire rï¿½el entre 0 et 1
 				double nombre_alea = rand();
 				nombre_alea /= RAND_MAX;
 
-				// Si le nombre pigé est inférieur au seuil, il prend la nouvelle solution même si elle dégrade la fonction objectif
-				// Si le nombre pigé est supérieur ou égal au seuil, il garde la solution courante sans la modifier
+				// Si le nombre pigï¿½ est infï¿½rieur au seuil, il prend la nouvelle solution mï¿½me si elle dï¿½grade la fonction objectif
+				// Si le nombre pigï¿½ est supï¿½rieur ou ï¿½gal au seuil, il garde la solution courante sans la modifier
 				if (nombre_alea < seuil)
 				{
 					Courante = Next;
@@ -141,7 +146,7 @@ int main(int NbParam, char *Param[])
 			}
 		} while (LAlgo.CptEval < ProchainPalier);
 		
-		// Modification de la température courante
+		// Modification de la tempï¿½rature courante
 		LAlgo.TemperatureCourante *= LAlgo.Alpha;
 		cout << "T_COURANTE: " << LAlgo.TemperatureCourante << endl;
 
@@ -162,12 +167,12 @@ int main(int NbParam, char *Param[])
 
 //DESCRIPTION: Creation d'une solution voisine a partir de la solution courante (uneSol) qui ne doit pas etre modifiee.
 //Dans cette fonction, appel de la fonction AppliquerVoisinage() pour obtenir une solution voisine selon un TYPE DE VOISINAGE selectionne + Definition la STRATEGIE D'ORIENTATION (Parcours/Regle de pivot).
-//Ainsi, si la RÈGLE DE PIVOT necessite l'etude de plusieurs voisins (TailleVoisinage>1), la fonction "AppliquerVoisinage()" sera appelee plusieurs fois.
+//Ainsi, si la Rï¿½GLE DE PIVOT necessite l'etude de plusieurs voisins (TailleVoisinage>1), la fonction "AppliquerVoisinage()" sera appelee plusieurs fois.
 TSolution GetSolutionVoisine (const TSolution uneSol, TProblem unProb, TAlgo &unAlgo)
 {
 	//Type (structure) de voisinage : 	Echange - Echange de 2 taches
 	//Parcours dans le voisinage : 		Aleatoire: Selection aleatoire des 2 taches 
-	//Regle de pivot : 					k-ImproveBEST (k étant donné en paramètre pour l'exécution du pgm)
+	//Regle de pivot : 					k-ImproveBEST (k ï¿½tant donnï¿½ en paramï¿½tre pour l'exï¿½cution du pgm)
 
 	//k-Improve-Best
 	TSolution unVoisin, unGagnant;
@@ -180,7 +185,7 @@ TSolution GetSolutionVoisine (const TSolution uneSol, TProblem unProb, TAlgo &un
 		unVoisin = AppliquerVoisinage(uneSol, unProb, unAlgo);
 		if (unVoisin.FctObj < unGagnant.FctObj) //Conservation du meilleur
 			unGagnant = unVoisin;
-		else //Choix aléatoire si unVoisin et un Gagnant sont de même qualité
+		else //Choix alï¿½atoire si unVoisin et un Gagnant sont de mï¿½me qualitï¿½
 			if (unVoisin.FctObj == unGagnant.FctObj)
 			{
 				if (rand() % 2 == 0)
