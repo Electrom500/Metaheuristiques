@@ -1,4 +1,12 @@
 #include "Entete.h"
+
+#include <cmath>
+
+// Membres de l'équipe H01 :
+// - Damien Santerne
+// - Maxime Hardy
+// - Niels Kristen
+
 #pragma comment (lib,"RecuitDLL.lib")  
 //%%%%%%%%%%%%%%%%%%%%%%%%% IMPORTANT: %%%%%%%%%%%%%%%%%%%%%%%%% 
 //Le fichier de probleme (.txt) et les fichiers de la DLL (RecuitDLL.dll et RecuitDLL.lib) doivent se trouver dans le repertoire courant du projet pour une execution a l'aide du compilateur. 
@@ -80,23 +88,70 @@ int main(int NbParam, char *Param[])
 	AfficherSolution(Courante, LeProb, "SOLUTION INITIALE: ", false);
 	//**Enregistrement qualite solution de depart
 	LAlgo.FctObjSolDepart = Courante.FctObj;
+
+	// Initialisation de la "meilleure solution à date"
+	Best = Courante;
+
+	// Initialisation de la température courante
+	LAlgo.TemperatureCourante = LAlgo.TemperatureInitiale;
+
+	// Variable sur le nombre d'évaluations par paliers
+	int NbEvalPalier = LAlgo.NB_EVAL_MAX / LAlgo.NbPalier;
+
+	// Variable pour la valeur à atteindre avant de changer de palier de température
+	int ProchainPalier = NbEvalPalier;
 	
 	do
 	{
-		Next = GetSolutionVoisine(Courante, LeProb, LAlgo);
-		//AfficherSolution(Courante, LeProb, "COURANTE: ", false);
-		//AfficherSolution(Next, LeProb, "NEXT: ", false);
-		LAlgo.Delta = Next.FctObj - Courante.FctObj;
-		if (LAlgo.Delta < 0)	//**deplacement amelioration (nous pourrions également considerer l'egalite)
+		do
 		{
-			Courante = Next;
-			cout << "CPT_EVAL: " << LAlgo.CptEval << "\t\tNEW COURANTE/OBJ: " << Courante.FctObj << endl;
-			//AfficherSolution(Courante, LeProb, "NOUVELLE COURANTE: ", false);
-		}
-	}while (LAlgo.CptEval < LAlgo.NB_EVAL_MAX && Courante.FctObj!=0); //Critere d'arret
+			Next = GetSolutionVoisine(Courante, LeProb, LAlgo);
+			//AfficherSolution(Courante, LeProb, "COURANTE: ", false);
+			//AfficherSolution(Next, LeProb, "NEXT: ", false);
+			LAlgo.Delta = Next.FctObj - Courante.FctObj;
+			if (LAlgo.Delta < 0)	//**deplacement amelioration (nous pourrions également considerer l'egalite)
+			{
+				Courante = Next;
+				// cout << "CPT_EVAL: " << LAlgo.CptEval << "\t\tNEW COURANTE/OBJ: " << Courante.FctObj << endl;
+				//AfficherSolution(Courante, LeProb, "NOUVELLE COURANTE: ", false);
+
+				// S'il y a amélioration de la fonction objectif, il y a une possibilité que la nouvelle solution soit la meilleure
+				// On doit tester si elle est meilleure ou non
+				if (Courante.FctObj < Best.FctObj)
+				{
+					Best = Courante;
+				}
+			}
+			else
+			{
+				// Calcul du seuil d'acceptation de la solution
+				double seuil = std::exp(-LAlgo.Delta / LAlgo.TemperatureCourante);
+
+				// On tire un nombre aléatoire réel entre 0 et 1
+				double nombre_alea = rand();
+				nombre_alea /= RAND_MAX;
+
+				// Si le nombre pigé est inférieur au seuil, il prend la nouvelle solution même si elle dégrade la fonction objectif
+				// Si le nombre pigé est supérieur ou égal au seuil, il garde la solution courante sans la modifier
+				if (nombre_alea < seuil)
+				{
+					Courante = Next;
+					// cout << "CPT_EVAL: " << LAlgo.CptEval << "\t\tNEW COURANTE/OBJ: " << Courante.FctObj << "\tSEUIL: " << seuil << endl;
+				}
+			}
+		} while (LAlgo.CptEval < ProchainPalier);
+		
+		// Modification de la température courante
+		LAlgo.TemperatureCourante *= LAlgo.Alpha;
+		cout << "T_COURANTE: " << LAlgo.TemperatureCourante << endl;
+
+		// Modification du prochain palier
+		ProchainPalier += NbEvalPalier;
+
+	} while (LAlgo.CptEval < LAlgo.NB_EVAL_MAX && Courante.FctObj!=0); //Critere d'arret
 	
-	AfficherResultats(Courante, LeProb, LAlgo);
-	AfficherResultatsFichier(Courante, LeProb, LAlgo,"Resultats.txt");
+	AfficherResultats(Best, LeProb, LAlgo);
+	AfficherResultatsFichier(Best, LeProb, LAlgo,"Resultats.txt");
 	
 	LibererMemoireFinPgm(Courante, Next, Best, LeProb);
 	
