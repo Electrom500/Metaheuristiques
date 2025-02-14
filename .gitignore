@@ -1,1 +1,4 @@
 **.png
+**/dist
+**/.vscode
+**/.vs
