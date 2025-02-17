@@ -102,7 +102,7 @@ int main(int NbParam, char* Param[])
 	
 	//**Creation de la solution initiale 
 	CreerSolutionAleatoire(Courante, LeProb, LAlgo);
-	AfficherSolution(Courante, LeProb, "SOLUTION INITIALE: ", false);
+	//AfficherSolution(Courante, LeProb, "SOLUTION INITIALE: ", false);
 	//**Enregistrement qualite solution de depart
 	LAlgo.FctObjSolDepart = Courante.FctObj;
 
@@ -160,14 +160,14 @@ int main(int NbParam, char* Param[])
 
 		// Modification de la temp�rature courante
 		LAlgo.TemperatureCourante *= LAlgo.Alpha;
-		cout << "T_COURANTE: " << LAlgo.TemperatureCourante << endl;
+		//cout << "T_COURANTE: " << LAlgo.TemperatureCourante << endl;
 
 		// Modification du prochain palier
 		ProchainPalier += NbEvalPalier;
 
 	} while (LAlgo.CptEval < LAlgo.NB_EVAL_MAX && Courante.FctObj != 0); //Critere d'arret
 
-	AfficherResultats(Best, LeProb, LAlgo);
+	//AfficherResultats(Best, LeProb, LAlgo);
 	AfficherResultatsFichier(Best, LeProb, LAlgo,"Resultats.txt");
 	AjouterResultatsFichierCSV(Best, LeProb, LAlgo, FichierSortie);
 	
