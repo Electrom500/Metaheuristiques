@@ -21,7 +21,14 @@ instances = [
 ]
 
 NbRepetitions = 10
-NbCombinaisons = len(TempInit) * len(Alpha) * len(TailleVoisinage) * len(NbPalier) * len(instances) * NbRepetitions
+NbCombinaisons = (
+    len(TempInit)
+    * len(Alpha)
+    * len(TailleVoisinage)
+    * len(NbPalier)
+    * len(instances)
+    * NbRepetitions
+)
 
 for T in TempInit:
     for a in Alpha:
