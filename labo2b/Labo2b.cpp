@@ -62,6 +62,9 @@ TSolution	AppliquerVoisinage(const TSolution uneSol, TProblem unProb, TAlgo& unA
 //DESCRIPTION: Echange de deux taches selectionnees aleatoirement.
 void EchangeDeuxTaches(TSolution& Voisin, TProblem unProb, TAlgo& unAlgo);
 
+// Ajouter les résultats dans un fichier CSV pour une meilleure facilité d'analyse avec un programme externe
+void AjouterResultatsFichierCSV(const TSolution uneSol, TProblem unProb, TAlgo unAlgo, std::string FileName);
+
 //******************************************************************************************
 // Fonction main
 //*****************************************************************************************
@@ -73,6 +76,7 @@ int main(int NbParam, char *Param[])
 	TProblem LeProb;		//Definition de l'instance de probleme
 	TAlgo LAlgo;			//Definition des parametres de l'agorithme
 	string NomFichier;
+	string FichierSortie;
 		
 	//**Lecture des parametres
 	NomFichier.assign(Param[1]);
@@ -81,14 +85,22 @@ int main(int NbParam, char *Param[])
 	LAlgo.Alpha = atof(Param[4]);
 	LAlgo.NbPalier = atoi(Param[5]);
 	LAlgo.NB_EVAL_MAX = atoi(Param[6]);
+
+	if (NbParam > 7) {
+		FichierSortie.assign(Param[7]);
+	}
+	else {
+		FichierSortie = "resultats.csv";
+	}
+
 	
 	srand(GetTickCount()); //**Precise un germe pour le generateur aleatoire (horloge en millisecondes)
 
 	//**Lecture du fichier de donnees
 	LectureProbleme(NomFichier, LeProb, LAlgo);
 	//AfficherProbleme(LeProb);
-	
-	//**Creation de la solution initiale 
+	//**Creation de la solution initiale
+
 	CreerSolutionAleatoire(Courante, LeProb, LAlgo);
 	AfficherSolution(Courante, LeProb, "SOLUTION INITIALE: ", false);
 	//**Enregistrement qualite solution de depart
@@ -157,6 +169,7 @@ int main(int NbParam, char *Param[])
 	
 	AfficherResultats(Best, LeProb, LAlgo);
 	AfficherResultatsFichier(Best, LeProb, LAlgo,"Resultats.txt");
+	AjouterResultatsFichierCSV(Best, LeProb, LAlgo, FichierSortie);
 	
 	LibererMemoireFinPgm(Courante, Next, Best, LeProb);
 	
@@ -229,4 +242,45 @@ void EchangeDeuxTaches(TSolution& Voisin, TProblem unProb, TAlgo& unAlgo)
 
 	//Echange des 2 taches
 	swap(Voisin.Seq[PosA], Voisin.Seq[PosB]); //Echange de 2 elements dans un vecteur (fonction dans la biblio functional)
+}
+
+// Cette fonction crée un fichier CSV ou ajoute à ce fichier les informations de la solution finale trouvée
+// Ces informations sont formatées en CSV de façon à faciliter l'analyse par un programme exerne
+void AjouterResultatsFichierCSV(const TSolution uneSol, TProblem unProb, TAlgo unAlgo, std::string FileName) {
+    // Vérifier si le fichier existe
+	std::ifstream ReadFileStream;
+	ReadFileStream.open(FileName);
+	bool FileExists = ReadFileStream.good();
+	ReadFileStream.close();
+	
+	// Ouvrir le fichier en mode "append"
+    std::ofstream FileStream;
+    FileStream.open(FileName, std::ios::app);
+
+    // Si c'est la première fois qu'on ouvre le fichier, on écrit aussi l'entête
+    if (!FileExists) {
+        FileStream << "Nom,N,NbVoisins,TempInit,Alpha,NbPalier,TotalEval,MaxEval,FctObjDepart,FctObjFinale,Etat,EvalPourTrouver,Seq" << std::endl;
+    }
+
+    // Ajouter les informations sur une seule ligne
+    FileStream << unProb.Nom << ",";
+    FileStream << unProb.N << ",";
+    FileStream << unAlgo.TailleVoisinage << ",";
+	FileStream << unAlgo.TemperatureInitiale << ",";
+	FileStream << unAlgo.Alpha << ",";
+	FileStream << unAlgo.NbPalier << ",";
+    FileStream << unAlgo.CptEval << ",";
+    FileStream << unAlgo.NB_EVAL_MAX << ",";
+    FileStream << unAlgo.FctObjSolDepart << ",";
+    FileStream << uneSol.FctObj << ",";
+    FileStream << uneSol.Valide << ",";
+    FileStream << uneSol.NbEvaltoGet << ",";
+
+    for (int i = 0; i < unProb.N - 1; i++) {
+        FileStream << uneSol.Seq[i] << "-";
+    }
+    FileStream << uneSol.Seq[unProb.N - 1] << std::endl;
+
+    // Fermer le fichier
+    FileStream.close();
 }
