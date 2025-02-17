@@ -1,4 +1,4 @@
-#include "Entete.h"
+﻿#include "Entete.h"
 
 #include <cmath>
 
@@ -53,7 +53,7 @@ extern "C" _declspec(dllimport) void	LibererMemoireFinPgm(TSolution uneCourante,
 
 //DESCRIPTION:	Creation d'une solution voisine a partir de la solution uneSol. Definition la STRATEGIE D'ORIENTATION (Parcours/Regle de pivot).
 //NB:uneSol ne doit pas etre modifiee (const)
-TSolution GetSolutionVoisine (const TSolution uneSol, TProblem unProb, TAlgo &unAlgo);
+TSolution GetSolutionVoisine(const TSolution uneSol, TProblem unProb, TAlgo& unAlgo);
 
 //DESCRIPTION:	Application du type de voisinage selectionne. La fonction retourne la solution voisine obtenue suite a l'application du type de voisinage.
 //NB:uneSol ne doit pas etre modifiee (const)
@@ -65,7 +65,7 @@ void EchangeDeuxTaches(TSolution& Voisin, TProblem unProb, TAlgo& unAlgo);
 //******************************************************************************************
 // Fonction main
 //*****************************************************************************************
-int main(int NbParam, char *Param[])
+int main(int NbParam, char* Param[])
 {
 	TSolution Courante;		//Solution active au cours des iterations
 	TSolution Next;			//Solution voisine retenue a une iteration
@@ -73,7 +73,7 @@ int main(int NbParam, char *Param[])
 	TProblem LeProb;		//Definition de l'instance de probleme
 	TAlgo LAlgo;			//Definition des parametres de l'agorithme
 	string NomFichier;
-		
+
 	//**Lecture des parametres
 	NomFichier.assign(Param[1]);
 	LAlgo.TailleVoisinage = atoi(Param[2]);
@@ -81,13 +81,13 @@ int main(int NbParam, char *Param[])
 	LAlgo.Alpha = atof(Param[4]);
 	LAlgo.NbPalier = atoi(Param[5]);
 	LAlgo.NB_EVAL_MAX = atoi(Param[6]);
-	
+
 	srand(GetTickCount()); //**Precise un germe pour le generateur aleatoire (horloge en millisecondes)
 
 	//**Lecture du fichier de donnees
 	LectureProbleme(NomFichier, LeProb, LAlgo);
 	//AfficherProbleme(LeProb);
-	
+
 	//**Creation de la solution initiale 
 	CreerSolutionAleatoire(Courante, LeProb, LAlgo);
 	AfficherSolution(Courante, LeProb, "SOLUTION INITIALE: ", false);
@@ -105,7 +105,7 @@ int main(int NbParam, char *Param[])
 
 	// Variable pour la valeur � atteindre avant de changer de palier de temp�rature
 	int ProchainPalier = NbEvalPalier;
-	
+
 	do
 	{
 		do
@@ -145,7 +145,7 @@ int main(int NbParam, char *Param[])
 				}
 			}
 		} while (LAlgo.CptEval < ProchainPalier);
-		
+
 		// Modification de la temp�rature courante
 		LAlgo.TemperatureCourante *= LAlgo.Alpha;
 		cout << "T_COURANTE: " << LAlgo.TemperatureCourante << endl;
@@ -153,80 +153,80 @@ int main(int NbParam, char *Param[])
 		// Modification du prochain palier
 		ProchainPalier += NbEvalPalier;
 
-	} while (LAlgo.CptEval < LAlgo.NB_EVAL_MAX && Courante.FctObj!=0); //Critere d'arret
-	
+	} while (LAlgo.CptEval < LAlgo.NB_EVAL_MAX && Courante.FctObj != 0); //Critere d'arret
+
 	AfficherResultats(Best, LeProb, LAlgo);
-	AfficherResultatsFichier(Best, LeProb, LAlgo,"Resultats.txt");
-	
+	AfficherResultatsFichier(Best, LeProb, LAlgo, "Resultats.txt");
+
 	LibererMemoireFinPgm(Courante, Next, Best, LeProb);
-	
+
 	//system("PAUSE");
 
 	return 0;
 }
 
-//DESCRIPTION: Creation d'une solution voisine a partir de la solution courante (uneSol) qui ne doit pas etre modifiee.
-//Dans cette fonction, appel de la fonction AppliquerVoisinage() pour obtenir une solution voisine selon un TYPE DE VOISINAGE selectionne + Definition la STRATEGIE D'ORIENTATION (Parcours/Regle de pivot).
-//Ainsi, si la R�GLE DE PIVOT necessite l'etude de plusieurs voisins (TailleVoisinage>1), la fonction "AppliquerVoisinage()" sera appelee plusieurs fois.
-TSolution GetSolutionVoisine (const TSolution uneSol, TProblem unProb, TAlgo &unAlgo)
+TSolution GetSolutionVoisine(const TSolution uneSol, TProblem unProb, TAlgo& unAlgo)
 {
-	//Type (structure) de voisinage : 	Echange - Echange de 2 taches
-	//Parcours dans le voisinage : 		Aleatoire: Selection aleatoire des 2 taches 
-	//Regle de pivot : 					k-ImproveBEST (k �tant donn� en param�tre pour l'ex�cution du pgm)
+	//Type (structure) de voisinage : Insertion
+	//Parcours dans le voisinage : Aléatoire (méthodes 0 et 1) ou Partielle orienté (méthode 2)
+	//Regle de pivot : 	k-improve best (on choisit la meilleure parmi k solutions voisines)
 
-	//k-Improve-Best
-	TSolution unVoisin, unGagnant;
-	int i;
-	
-	unGagnant = AppliquerVoisinage(uneSol, unProb, unAlgo); //Premier voisin
+	// Création du voisin
+	TSolution unVoisin;
+	TSolution meilleurVoisin = uneSol;
 
-	for (i = 2; i <= unAlgo.TailleVoisinage; i++) //Permet de generer plusieurs solutions voisines
-	{
+	// Itération sur k voisins
+	for (int i = 0; i < unAlgo.TailleVoisinage; i++) {
+
+		// Utiliser la fonction de voisinage par Insertion
 		unVoisin = AppliquerVoisinage(uneSol, unProb, unAlgo);
-		if (unVoisin.FctObj < unGagnant.FctObj) //Conservation du meilleur
-			unGagnant = unVoisin;
-		else //Choix al�atoire si unVoisin et un Gagnant sont de m�me qualit�
-			if (unVoisin.FctObj == unGagnant.FctObj)
-			{
-				if (rand() % 2 == 0)
-					unGagnant = unVoisin;
-			}
+		
+		// Si le voisin est meilleur que le meilleur voisin jusqu'à présent, on remplace le meilleur voisin par le nouveau voisin
+		if (unVoisin.FctObj < meilleurVoisin.FctObj) {
+			meilleurVoisin = unVoisin;
+		}
 	}
-	return (unGagnant);
+
+	// On renvoie le meilleur voisin parmi les k voisins testés
+	return meilleurVoisin;
 }
+
 
 //DESCRIPTION: Fonction appliquant le type de voisinage selectionne. La fonction retourne la solution voisine obtenue suite a l'application du type de voisinage.
 //NB: La solution courante (uneSol) ne doit pas etre modifiee (const)
 TSolution AppliquerVoisinage(const TSolution uneSol, TProblem unProb, TAlgo& unAlgo)
 {
-	//Type (structure) de voisinage : 	Echange - Echange de 2 taches selectionnees aleatoirement	
+	// Type (structure) de voisinage : Insertion
+	// On enlève un élément de la séquence et on l'insère ailleurs dans la séquence
 	TSolution Copie;
 
-	//Utilisation d'une nouvelle TSolution pour ne pas modifier La solution courante (uneSol)
+	// Utilisation d'une nouvelle TSolution pour ne pas modifier La solution courante (uneSol)
 	Copie = uneSol;
 
-	//Transformation de la solution Copie selon le type (structure) de voisinage selectionne : Echange
-	EchangeDeuxTaches(Copie, unProb, unAlgo);
+	// Transformation de la solution Copie selon le type (structure) de voisinage selectionne : insertion
+	// Ici la solution Copie demeure identique a la solution uneSol
 
-	//Le nouveau voisin doit etre evalue et retourne
+	// Piger une tâche parmis N à enlever et piger une nouvelle position parmis N-1 positions
+	int AnciennePosition = rand() % unProb.N;
+	int NouvellePosition = rand() % (unProb.N - 1);
+
+	// On enlève l'élément à l'ancienne position
+	int ValeurElement = Copie.Seq[AnciennePosition];
+	Copie.Seq.erase(Copie.Seq.begin() + AnciennePosition);
+
+	// Cas rare: Plutôt que d'insérer à la même place, on le met à la fin
+	if (AnciennePosition == NouvellePosition) {
+		// On ajoute notre élément à la fin du vecteur
+		Copie.Seq.push_back(ValeurElement);
+	}
+	// Cas normal: On remet l'élément à la nouvelle position
+	// en décalant le sous-ensemble du vecteur.
+	else {
+		// On insère notre élément à la nouvelle position
+		Copie.Seq.insert(Copie.Seq.begin() + NouvellePosition, ValeurElement);
+	}
+
+	// Le nouveau voisin doit etre evalue et retourne
 	EvaluerSolution(Copie, unProb, unAlgo);
 	return(Copie);
-}
-
-//DESCRIPTION: Echange de deux taches selectionnees aleatoirement																		
-//A modifier si vous le souhaitez 
-void EchangeDeuxTaches(TSolution& Voisin, TProblem unProb, TAlgo& unAlgo)
-{
-	int PosA, PosB;
-
-	//Tirage aleatoire des 2 taches
-	PosA = rand() % unProb.N;
-	do
-	{
-		PosB = rand() % unProb.N;
-	} while (PosA == PosB);
-	//Verification pour ne pas perdre une evaluation
-
-	//Echange des 2 taches
-	swap(Voisin.Seq[PosA], Voisin.Seq[PosB]); //Echange de 2 elements dans un vecteur (fonction dans la biblio functional)
 }

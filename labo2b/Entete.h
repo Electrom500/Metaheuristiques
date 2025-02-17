@@ -1,13 +1,7 @@
 #ifndef __ENTETE_H_
 #define __ENTETE_H_
 
-// Windows specific headers
-#ifdef _WIN32
-#include <windows.h>
-#else
-#define INT_MAX 2147483647
-#endif
-
+#include <windows.h> 
 #include <cstdio>
 #include <cstdlib> 
 #include <string>

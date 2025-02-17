@@ -20,8 +20,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Labo2a.cpp">
+    <ClCompile Include="Labo2b.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
   </ItemGroup>
-</Project> 
+</Project>
