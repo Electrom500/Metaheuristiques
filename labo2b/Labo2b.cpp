@@ -243,3 +243,44 @@ TSolution AppliquerVoisinage(const TSolution uneSol, TProblem unProb, TAlgo& unA
 	EvaluerSolution(Copie, unProb, unAlgo);
 	return(Copie);
 }
+
+// Cette fonction crée un fichier CSV ou ajoute à ce fichier les informations de la solution finale trouvée
+// Ces informations sont formatées en CSV de façon à faciliter l'analyse par un programme exerne
+void AjouterResultatsFichierCSV(const TSolution uneSol, TProblem unProb, TAlgo unAlgo, std::string FileName) {
+	// Vérifier si le fichier existe
+	std::ifstream ReadFileStream;
+	ReadFileStream.open(FileName);
+	bool FileExists = ReadFileStream.good();
+	ReadFileStream.close();
+
+	// Ouvrir le fichier en mode "append"
+	std::ofstream FileStream;
+	FileStream.open(FileName, std::ios::app);
+
+	// Si c'est la première fois qu'on ouvre le fichier, on écrit aussi l'entête
+	if (!FileExists) {
+		FileStream << "Nom,N,NbVoisins,TempInit,Alpha,NbPalier,TotalEval,MaxEval,FctObjDepart,FctObjFinale,Etat,EvalPourTrouver,Seq" << std::endl;
+	}
+
+	// Ajouter les informations sur une seule ligne
+	FileStream << unProb.Nom << ",";
+	FileStream << unProb.N << ",";
+	FileStream << unAlgo.TailleVoisinage << ",";
+	FileStream << unAlgo.TemperatureInitiale << ",";
+	FileStream << unAlgo.Alpha << ",";
+	FileStream << unAlgo.NbPalier << ",";
+	FileStream << unAlgo.CptEval << ",";
+	FileStream << unAlgo.NB_EVAL_MAX << ",";
+	FileStream << unAlgo.FctObjSolDepart << ",";
+	FileStream << uneSol.FctObj << ",";
+	FileStream << uneSol.Valide << ",";
+	FileStream << uneSol.NbEvaltoGet << ",";
+
+	for (int i = 0; i < unProb.N - 1; i++) {
+		FileStream << uneSol.Seq[i] << "-";
+	}
+	FileStream << uneSol.Seq[unProb.N - 1] << std::endl;
+
+	// Fermer le fichier
+	FileStream.close();
+}
