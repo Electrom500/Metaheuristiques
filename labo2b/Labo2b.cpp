@@ -62,6 +62,9 @@ TSolution	AppliquerVoisinage(const TSolution uneSol, TProblem unProb, TAlgo& unA
 //DESCRIPTION: Echange de deux taches selectionnees aleatoirement.
 void EchangeDeuxTaches(TSolution& Voisin, TProblem unProb, TAlgo& unAlgo);
 
+// Ajouter les résultats dans un fichier CSV pour une meilleure facilité d'analyse avec un programme externe
+void AjouterResultatsFichierCSV(const TSolution uneSol, TProblem unProb, TAlgo unAlgo, std::string FileName);
+
 //******************************************************************************************
 // Fonction main
 //*****************************************************************************************
@@ -73,7 +76,8 @@ int main(int NbParam, char* Param[])
 	TProblem LeProb;		//Definition de l'instance de probleme
 	TAlgo LAlgo;			//Definition des parametres de l'agorithme
 	string NomFichier;
-
+	string FichierSortie;
+		
 	//**Lecture des parametres
 	NomFichier.assign(Param[1]);
 	LAlgo.TailleVoisinage = atoi(Param[2]);
@@ -82,12 +86,20 @@ int main(int NbParam, char* Param[])
 	LAlgo.NbPalier = atoi(Param[5]);
 	LAlgo.NB_EVAL_MAX = atoi(Param[6]);
 
+	if (NbParam > 7) {
+		FichierSortie.assign(Param[7]);
+	}
+	else {
+		FichierSortie = "resultats.csv";
+	}
+
+	
 	srand(GetTickCount()); //**Precise un germe pour le generateur aleatoire (horloge en millisecondes)
 
 	//**Lecture du fichier de donnees
 	LectureProbleme(NomFichier, LeProb, LAlgo);
 	//AfficherProbleme(LeProb);
-
+	
 	//**Creation de la solution initiale 
 	CreerSolutionAleatoire(Courante, LeProb, LAlgo);
 	AfficherSolution(Courante, LeProb, "SOLUTION INITIALE: ", false);
@@ -156,8 +168,9 @@ int main(int NbParam, char* Param[])
 	} while (LAlgo.CptEval < LAlgo.NB_EVAL_MAX && Courante.FctObj != 0); //Critere d'arret
 
 	AfficherResultats(Best, LeProb, LAlgo);
-	AfficherResultatsFichier(Best, LeProb, LAlgo, "Resultats.txt");
-
+	AfficherResultatsFichier(Best, LeProb, LAlgo,"Resultats.txt");
+	AjouterResultatsFichierCSV(Best, LeProb, LAlgo, FichierSortie);
+	
 	LibererMemoireFinPgm(Courante, Next, Best, LeProb);
 
 	//system("PAUSE");
