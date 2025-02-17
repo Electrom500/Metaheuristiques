@@ -8,7 +8,10 @@ import os
 import numpy as np
 import pandas as pd
 
-TempInit = np.linspace(100, 5000, 41, dtype=int)
+TempInit = np.linspace(100, 5000, 41, dtype=int)[1:14] # Maxime
+#TempInit = np.linspace(100, 5000, 41, dtype=int)[14:28] # Damien
+#TempInit = np.linspace(100, 5000, 41, dtype=int)[28:] # Niels
+
 Alpha = np.array([0.75, 0.8, 0.85, 0.9, 0.95])
 TailleVoisinage = np.array([2, 5, 10, 15, 20])
 NbPalier = np.array([5, 10, 15, 20, 50])
@@ -37,10 +40,6 @@ def execute(args):
 combinaisons = list(itertools.product(TempInit, TailleVoisinage, Alpha, NbPalier, instances))
 
 # Exécution en parallèle
-executor = concurrent.futures.ProcessPoolExecutor(
-    max_workers=2,
-)
-
-with concurrent.futures.ProcessPoolExecutor(max_workers=2):
+with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
     res = list(executor.map(execute, combinaisons))
 
