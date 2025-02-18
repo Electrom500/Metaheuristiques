@@ -37,6 +37,10 @@ fichiers_resultats = [
     "resultats_calibration_63502.txt",
     "resultats_calibration_63503.txt",
     "resultats_calibration_63504.txt",
+    "resultats_calibration_884.txt",
+    "resultats_calibration_15324.txt",
+    "resultats_calibration_17672.txt",
+    "resultats_calibration_32704.txt",
 ]
 
 resultats = pd.concat([pd.read_csv(f) for f in fichiers_resultats], axis=0)
@@ -94,7 +98,8 @@ for i, p in enumerate(params):
     ax.set_ylabel("Nombre d'occurrences")
 
     if i == 0:
-        ax.set_xticks(counts.index, labels=counts.index, rotation=45, ha="right")
+        ax.set_xlim(0, 5000)
+        #ax.set_xticks(counts.index, labels=counts.index, rotation=45, ha="right")
     else:
         ax.set_xticks(counts.index)
 
