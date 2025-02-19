@@ -1,5 +1,3 @@
-#define OS_WINDOWS // Either define OS_LINUX or OS_WINDOWS
-
 #include "Entete.h"
 
 #include <fstream>
@@ -7,12 +5,7 @@
 #include <string>
 #include <vector>
 
-#ifdef OS_LINUX
-// Nous avons fait du "reverse engineering" pour recréer les différentes fonctions des
-// DLL afin de faire fonctionner le programme sur Linux aussi.
-#include "ProcesseurUnique.h"
-
-#else
+#ifdef _WIN32
 #pragma comment (lib,"DescenteDLL.lib")  
 //%%%%%%%%%%%%%%%%%%%%%%%%% IMPORTANT: %%%%%%%%%%%%%%%%%%%%%%%%% 
 //Le fichier de probleme (.txt) et les fichiers de la DLL (DescenteDLL.dll et DescenteDLL.lib) doivent se trouver dans le repertoire courant du projet pour une execution a l'aide du compilateur. 
@@ -47,6 +40,10 @@ extern "C" _declspec(dllimport) void AfficherResultatsFichier(const TSolution un
 
 //DESCRIPTION:	Liberation de la memoire allouee dynamiquement pour les differentes structures en parametre
 extern "C" _declspec(dllimport) void	LibererMemoireFinPgm(TSolution uneCourante, TSolution uneNext, TSolution uneBest, TProblem unProb);
+#else
+// Nous avons fait du "reverse engineering" pour recréer les différentes fonctions des
+// DLL afin de faire fonctionner le programme sur Linux aussi.
+#include "ProcesseurUnique.h"
 #endif
 
 //*****************************************************************************************

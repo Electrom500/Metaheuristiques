@@ -2,6 +2,8 @@
 #include <deque>
 #include <utility>
 #include <tuple>
+
+#ifdef _WIN32
 #pragma comment (lib,"TabouDLL.lib")  
 //%%%%%%%%%%%%%%%%%%%%%%%%% IMPORTANT: %%%%%%%%%%%%%%%%%%%%%%%%% 
 //Le fichier de probleme (.txt) et les fichiers de la DLL (TabouDLL.dll et TabouDLL.lib) doivent se trouver dans le repertoire courant du projet pour une execution a l'aide du compilateur. 
@@ -36,6 +38,9 @@ extern "C" _declspec(dllimport) void AfficherResultatsFichier(const TSolution un
 
 //DESCRIPTION:	Liberation de la memoire allouee dynamiquement pour les differentes structures en parametre
 extern "C" _declspec(dllimport) void	LibererMemoireFinPgm(TSolution uneCourante, TSolution uneNext, TSolution uneBest, TProblem unProb);
+#else
+#include "ProcesseurUnique.h"
+#endif
 
 //*****************************************************************************************
 // Prototype des fonctions locales 
@@ -51,6 +56,10 @@ std::pair<TSolution, std::pair<int, int>>	AppliquerVoisinage(const TSolution une
 
 //DESCRIPTION: Vérifie que les indices selectionnés ne sont pas dans la liste des tabous ou respecte le critère d'aspiration 
 bool EstAdmissible(const std::pair<int, int >  Tabou, const TSolution SolutionVoisine, const std::deque<std::pair<int, int>>& listeTabous,const int critereAspiration);
+
+// Ajouter les résultats dans un fichier CSV pour une meilleure facilité d'analyse avec un programme externe
+void AjouterResultatsFichierCSV(const TSolution uneSol, TProblem unProb, TAlgo unAlgo, std::string FileName);
+
 //******************************************************************************************
 // Fonction main
 //*****************************************************************************************
@@ -62,12 +71,20 @@ int main(int NbParam, char *Param[])
 	TProblem LeProb;		//Definition de l'instance de probleme
 	TAlgo LAlgo;			//Definition des parametres de l'agorithme
 	string NomFichier;
+	string FichierSortie;
 		
 	//**Lecture des parametres
 	NomFichier.assign(Param[1]);
 	LAlgo.TailleVoisinage = atoi(Param[2]);
 	LAlgo.LngListeTabous = atoi(Param[3]);
 	LAlgo.NB_EVAL_MAX = atoi(Param[4]);
+
+	if (NbParam > 5) {
+		FichierSortie.assign(Param[5]);
+	}
+	else {
+		FichierSortie = "resultats.csv";
+	}
 
 	srand(GetTickCount()); //**Precise un germe pour le generateur aleatoire (horloge en millisecondes)
 	
@@ -77,7 +94,7 @@ int main(int NbParam, char *Param[])
 
 	//**Creation de la solution initiale 
 	CreerSolutionAleatoire(Courante, LeProb, LAlgo);
-	AfficherSolution(Courante, LeProb, "SOLUTION INITIALE: ", false);
+	//AfficherSolution(Courante, LeProb, "SOLUTION INITIALE: ", false);
 	//**Enregistrement qualite solution de depart
 	LAlgo.FctObjSolDepart = Courante.FctObj;
 
@@ -108,8 +125,9 @@ int main(int NbParam, char *Param[])
 		//cout << "CPT_EVAL: " << LAlgo.CptEval << "\t\tNEW COURANTE/OBJ: " << Next.FctObj << endl;
 	} while (LAlgo.CptEval < LAlgo.NB_EVAL_MAX && Courante.FctObj != 0); //Critere d'arret
 
-	AfficherResultats(Best, LeProb, LAlgo);
-	AfficherResultatsFichier(Best, LeProb, LAlgo, "Resultats.txt");
+	//AfficherResultats(Best, LeProb, LAlgo);
+	//AfficherResultatsFichier(Best, LeProb, LAlgo, "Resultats.txt");
+	AjouterResultatsFichierCSV(Best, LeProb, LAlgo, FichierSortie);
 
 	LibererMemoireFinPgm(Courante, Next, Best, LeProb);
 
@@ -201,11 +219,50 @@ bool EstAdmissible(const std::pair<int, int >  Tabou, const TSolution SolutionVo
 		//if ((Tabou.first == listeTabous[i].first) && (std::abs(Tabou.second - listeTabous[i].second)<4 )) {
 		if (Tabou == listeTabous[i]){
 			if (SolutionVoisine.FctObj < critereAspiration) {
-				std::cout << "-----------------CRITERE D ASPIRATION-------------------------" << std::endl;
+				//std::cout << "-----------------CRITERE D ASPIRATION-------------------------" << std::endl;
 				return true;
 			}
 			return false;
 		}
 	} 
 	return true;
+}
+
+// Cette fonction crée un fichier CSV ou ajoute à ce fichier les informations de la solution finale trouvée
+// Ces informations sont formatées en CSV de façon à faciliter l'analyse par un programme exerne
+void AjouterResultatsFichierCSV(const TSolution uneSol, TProblem unProb, TAlgo unAlgo, std::string FileName) {
+	// Vérifier si le fichier existe
+	std::ifstream ReadFileStream;
+	ReadFileStream.open(FileName);
+	bool FileExists = ReadFileStream.good();
+	ReadFileStream.close();
+
+	// Ouvrir le fichier en mode "append"
+	std::ofstream FileStream;
+	FileStream.open(FileName, std::ios::app);
+
+	// Si c'est la première fois qu'on ouvre le fichier, on écrit aussi l'entête
+	if (!FileExists) {
+		FileStream << "Nom,N,NbVoisins,LngListeTabous,TotalEval,MaxEval,FctObjDepart,FctObjFinale,Etat,EvalPourTrouver,Seq" << std::endl;
+	}
+
+	// Ajouter les informations sur une seule ligne
+	FileStream << unProb.Nom << ",";
+	FileStream << unProb.N << ",";
+	FileStream << unAlgo.TailleVoisinage << ",";
+	FileStream << unAlgo.LngListeTabous << ",";
+	FileStream << unAlgo.CptEval << ",";
+	FileStream << unAlgo.NB_EVAL_MAX << ",";
+	FileStream << unAlgo.FctObjSolDepart << ",";
+	FileStream << uneSol.FctObj << ",";
+	FileStream << uneSol.Valide << ",";
+	FileStream << uneSol.NbEvaltoGet << ",";
+
+	for (int i = 0; i < unProb.N - 1; i++) {
+		FileStream << uneSol.Seq[i] << "-";
+	}
+	FileStream << uneSol.Seq[unProb.N - 1] << std::endl;
+
+	// Fermer le fichier
+	FileStream.close();
 }
