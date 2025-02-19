@@ -8,9 +8,9 @@ import os
 import numpy as np
 import pandas as pd
 
-LngListeTabous = np.arange(1, 50)
+LngListeTabous = np.arange(1, 50, 2)
 
-TailleVoisinage = np.arange(1, 50)
+TailleVoisinage = np.arange(1, 50, 2)
 
 instances = np.array(
     [

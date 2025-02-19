@@ -31,7 +31,7 @@ valeur_minimale = pd.Series(
     name="MinVal",
 )
 
-fichiers_resultats = [f"resultats_calibration_{i}.txt" for i in range(632424, 632440)]
+fichiers_resultats = [f"resultats_calibration_{765439+i}.txt" for i in range(0, 16)]
 
 resultats = pd.concat([pd.read_csv(f) for f in fichiers_resultats], axis=0)
 
@@ -41,14 +41,18 @@ resultats = resultats.join(valeur_minimale, on="Nom")
 # Ajout écart absolu et relatif
 resultats["EcartAbs"] = resultats["FctObjFinale"] - resultats["MinVal"]
 resultats["EcartRel"] = resultats["EcartAbs"] / resultats["MinVal"]
+resultats["EcartQuad"] = resultats["EcartAbs"]**2
+resultats["EcartRelQuad"] = resultats["EcartRel"]**2
 
 ########################################################################################
 # Grouper selon les combinaisons de paramètres
 params = ["NbVoisins", "LngListeTabous"]
 
-res_groups = resultats.groupby(params)[["EcartRel", "EcartAbs"]].mean()
+res_groups = resultats.groupby(params)[["EcartRel", "EcartAbs", "EcartQuad", "EcartRelQuad"]].mean()
 res_ecart_rel = res_groups.sort_values("EcartRel")
 res_ecart_abs = res_groups.sort_values("EcartAbs")
+res_ecart_quad = res_groups.sort_values("EcartQuad")
+res_ecart_rel_quad = res_groups.sort_values("EcartRelQuad")
 
 # Afficher les résultats totaux selon le classement
 resultats_sort = resultats.set_index(params + ["Nom"]).sort_index()
@@ -56,12 +60,12 @@ resultats_sort = resultats.set_index(params + ["Nom"]).sort_index()
 # resultats_sort.loc[res_ecart_rel.index, ["FctObjFinale", "MinVal", "EcartRel", "EcartAbs"]]
 
 best_resultats = resultats_sort.loc[
-    res_ecart_rel.index[0], ["FctObjFinale", "MinVal", "EcartRel", "EcartAbs"]
+    res_ecart_quad.index[1], ["FctObjFinale", "MinVal", "EcartRel", "EcartAbs", "EcartQuad", "EcartRelQuad"]
 ]
 
 ########################################################################################
 # Affichage des valeurs des paramètres pour les meilleures combinaisons
-best_combinaisons = res_ecart_rel.reset_index().iloc[:50]
+best_combinaisons = res_ecart_quad.reset_index().iloc[:50]
 param_labels = [
     "Nombre de voisins",
     "Longueur de la liste de tabous",
