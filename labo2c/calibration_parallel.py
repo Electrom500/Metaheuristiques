@@ -8,9 +8,9 @@ import os
 import numpy as np
 import pandas as pd
 
-LngListeTabous = np.array([1, 2, 4, 7, 10, 15, 20])
+LngListeTabous = np.arange(1, 50)
 
-TailleVoisinage = np.array([2, 5, 10, 15, 20])
+TailleVoisinage = np.arange(1, 50)
 
 instances = np.array(
     [
@@ -43,5 +43,5 @@ combinaisons = list(
 )
 
 # Exécution en parallèle
-with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:
     res = list(executor.map(execute, combinaisons))

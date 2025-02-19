@@ -31,17 +31,7 @@ valeur_minimale = pd.Series(
     name="MinVal",
 )
 
-fichiers_resultats = [
-    "resultats_calibration.txt",
-    "resultats_calibration_63501.txt",
-    "resultats_calibration_63502.txt",
-    "resultats_calibration_63503.txt",
-    "resultats_calibration_63504.txt",
-    "resultats_calibration_884.txt",
-    "resultats_calibration_15324.txt",
-    "resultats_calibration_17672.txt",
-    "resultats_calibration_32704.txt",
-]
+fichiers_resultats = [f"resultats_calibration_{i}.txt" for i in range(632424, 632440)]
 
 resultats = pd.concat([pd.read_csv(f) for f in fichiers_resultats], axis=0)
 
@@ -54,7 +44,7 @@ resultats["EcartRel"] = resultats["EcartAbs"] / resultats["MinVal"]
 
 ########################################################################################
 # Grouper selon les combinaisons de paramètres
-params = ["TempInit", "NbVoisins", "Alpha", "NbPalier"]
+params = ["NbVoisins", "LngListeTabous"]
 
 res_groups = resultats.groupby(params)[["EcartRel", "EcartAbs"]].mean()
 res_ecart_rel = res_groups.sort_values("EcartRel")
@@ -71,16 +61,14 @@ best_resultats = resultats_sort.loc[
 
 ########################################################################################
 # Affichage des valeurs des paramètres pour les meilleures combinaisons
-best_combinaisons = res_ecart_rel.reset_index().iloc[:100]
+best_combinaisons = res_ecart_rel.reset_index().iloc[:50]
 param_labels = [
-    "Température initiale",
     "Nombre de voisins",
-    "Alpha",
-    "Nombre de paliers",
+    "Longueur de la liste de tabous",
 ]
-param_widths = [50, 2, 0.03, 2]
+param_widths = [0.5, 0.5]
 
-fig, axes = plt.subplots(2, 2, layout="constrained")
+fig, axes = plt.subplots(1, 2, layout="constrained", figsize=(6.4, 3.2))
 
 for i, p in enumerate(params):
     c = "tab:blue"
@@ -97,10 +85,7 @@ for i, p in enumerate(params):
     ax.set_xlabel(param_labels[i])
     ax.set_ylabel("Nombre d'occurrences")
 
-    if i == 0:
-        ax.set_xlim(0, 5000)
-        #ax.set_xticks(counts.index, labels=counts.index, rotation=45, ha="right")
-    else:
-        ax.set_xticks(counts.index)
+    #ax.set_xticks(counts.index)
+    ax.set_xlim(0, 50)
 
 fig.savefig("param_distributions.png", dpi=300)

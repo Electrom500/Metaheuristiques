@@ -8,7 +8,7 @@ import os
 import numpy as np
 import pandas as pd
 
-TempInit = np.linspace(50, 1041, 41)
+TempInit = np.linspace(50, 1050, 41, dtype=int)
 #TempInit = np.linspace(100, 5000, 41, dtype=int)[1:14]  # Maxime
 # TempInit = np.linspace(100, 5000, 41, dtype=int)[14:28] # Damien
 # TempInit = np.linspace(100, 5000, 41, dtype=int)[28:] # Niels
@@ -56,5 +56,5 @@ combinaisons = list(
 )
 
 # Exécution en parallèle
-with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+with concurrent.futures.ProcessPoolExecutor(max_workers=16) as executor:
     res = list(executor.map(execute, combinaisons))
