@@ -186,10 +186,10 @@ TSolution GetSolutionVoisine(const TSolution uneSol, TProblem unProb, TAlgo& unA
 
 	// Création du voisin
 	TSolution unVoisin;
-	TSolution meilleurVoisin = uneSol;
+	TSolution meilleurVoisin = AppliquerVoisinage(uneSol, unProb, unAlgo);
 
 	// Itération sur k voisins
-	for (int i = 0; i < unAlgo.TailleVoisinage; i++) {
+	for (int i = 1; i < unAlgo.TailleVoisinage; i++) {
 
 		// Utiliser la fonction de voisinage par Insertion
 		unVoisin = AppliquerVoisinage(uneSol, unProb, unAlgo);

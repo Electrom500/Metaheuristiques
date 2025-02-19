@@ -8,7 +8,8 @@ import os
 import numpy as np
 import pandas as pd
 
-TempInit = np.linspace(100, 5000, 41, dtype=int)[1:14]  # Maxime
+TempInit = np.linspace(50, 1041, 41)
+#TempInit = np.linspace(100, 5000, 41, dtype=int)[1:14]  # Maxime
 # TempInit = np.linspace(100, 5000, 41, dtype=int)[14:28] # Damien
 # TempInit = np.linspace(100, 5000, 41, dtype=int)[28:] # Niels
 
