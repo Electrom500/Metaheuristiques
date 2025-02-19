@@ -217,7 +217,7 @@ std::pair<TSolution,std::pair<int,int>> AppliquerVoisinage(const TSolution uneSo
 bool EstAdmissible(const std::pair<int, int >  Tabou, const TSolution SolutionVoisine, const std::deque<std::pair<int, int>>& listeTabous, const int critereAspiration) {
 	for (int i = 0;i < listeTabous.size();i++) {
 		//if ((Tabou.first == listeTabous[i].first) && (std::abs(Tabou.second - listeTabous[i].second)<4 )) {
-		if (Tabou == listeTabous[i]){
+		if ((Tabou.first == listeTabous[i].second) && (Tabou.second == listeTabous[i].first)){
 			if (SolutionVoisine.FctObj < critereAspiration) {
 				//std::cout << "-----------------CRITERE D ASPIRATION-------------------------" << std::endl;
 				return true;
