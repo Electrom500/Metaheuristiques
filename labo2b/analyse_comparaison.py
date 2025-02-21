@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+pd.options.mode.copy_on_write = True
 plt.close("all")
 plt.rcParams["axes.autolimit_mode"] = "round_numbers"
 
@@ -40,8 +41,8 @@ resultats = [
 
 labels = [
     "Descente",
-    "Recuit simulé\n(meilleur écart relatif)",
-    "Recuit simulé\n(meilleur écart absolu)",
+    "Recuit simulé\n(écart relatif)",
+    "Recuit simulé\n(écart absolu)",
     "Recherche avec\ntabous",
 ]
 
@@ -78,6 +79,16 @@ for file, min_val in zip(files, valeur_minimale):
             widths=0.5,
         )
 
+        subset["EcartOptimal"] = 100 * np.abs(subset["FctObjFinale"] - min_val) / min_val
+
+        if i > 1:
+            print(labels[i])
+            print(file)
+            print(subset[["FctObjFinale", "EcartOptimal", "EvalPourTrouver"]].head(5))
+            print()
+            print(subset[["FctObjFinale", "EcartOptimal", "EvalPourTrouver"]].describe())
+            print()
+
     ax.set_xticks(range(0, len(resultats)), labels=labels)
 
     #ax.set_xticks(range(len(voisinages)), labels=voisinages)
@@ -86,7 +97,7 @@ for file, min_val in zip(files, valeur_minimale):
     # ax.set_ylim(0, None)
     ax.set_ylim(max(0, ax.get_ylim()[0]), None)
 
-    ax.set_ylabel("Valeur optimale de la fonction objectif (x 1000)")
+    ax.set_ylabel("Valeur de la fonction objectif finale (x 1000)")
     ax.set_title(file)
     #ax.legend(loc="best")
 
