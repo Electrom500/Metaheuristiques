@@ -1,7 +1,12 @@
 #ifndef __ENTETE_H_
 #define __ENTETE_H_
 
-#include <windows.h> 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#define INT_MAX 2147483647
+#endif
+
 #include <cstdio>
 #include <cstdlib> 
 #include <string>
@@ -35,7 +40,7 @@ struct TSolution						//**Definition d'une solution:
 {
 	std::vector <int> Seq;				//**Sequence dans laquelle les villes sont visitees. NB: Tableau de 0 a NbVilles-1. NB: Positions 0 et NbVilles-1 sont fixes
 	long FctObj = INT_MAX;				//**Valeur de la fonction obj: Distance totale
-	bool Valide=false;					//**Etat de validité de la solution: respect des contraintes de precedence + si chaque ville est presente une et une seule fois. Verifie lorsque la solution est evaluee
+	bool Valide=false;					//**Etat de validitï¿½ de la solution: respect des contraintes de precedence + si chaque ville est presente une et une seule fois. Verifie lorsque la solution est evaluee
 	int NbEvaltoGet;					//**Nombre d'evalutions de solutions necessaires pour trouver cette solution... pour estimer convergence
 };
 
