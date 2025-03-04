@@ -60,7 +60,7 @@ extern "C" _declspec(dllimport) void LibererMemoireFinPgm(std::vector<TSolution>
 // Prototype des fonctions locales 
 //*****************************************************************************************
 TSolution Croisement(TSolution Parent1, TSolution Parent2, TProblem unProb, TAlgo &unAlgo);
-void Remplacement(std::vector<TSolution> &Parents, std::vector<TSolution> Enfants, TProblem unProb, TAlgo unAlgo);
+int Remplacement(std::vector<TSolution> &Parents, std::vector<TSolution> Enfants, TProblem unProb, TAlgo unAlgo);
 
 int CalculSolutionsOriginales(vector<TSolution>& pop);
 
@@ -107,7 +107,7 @@ int main(int NbParam, char* Param[])
 	//**Tri de la population
 	TrierPopulation(Pop, 0, LAlgo.TaillePop);
 	//AfficherPopulation(Pop, LAlgo.Gen, LeProb);
-
+	
 	//**Initialisation de de la meilleure solution au debut de l'algorithme
 	Best = Pop[0];
 	LAlgo.FctObjSolDepart = Pop[0].FctObj;
@@ -150,13 +150,12 @@ int main(int NbParam, char* Param[])
 		//AfficherPopulation(PopEnfant, LAlgo.Gen, LeProb);
 		
 		//**REMPLACEMENT de la population pour la prochaine g�n�ration
-		Remplacement(Pop, PopEnfant, LeProb, LAlgo);
+		unique = Remplacement(Pop, PopEnfant, LeProb, LAlgo);
 		TrierPopulation(Pop, 0, LAlgo.TaillePop);
 		
 		//**Conservation de la meilleure solution
 		if (Pop[0].Valide && (Pop[0].FctObj < Best.FctObj)) Best = Pop[0];
-		
-		unique = CalculSolutionsOriginales(Pop);																			
+																					
 		std::cout << "(Gen#" << setw(3) << LAlgo.Gen << ") Best OBJ: " << Best.FctObj << "    Nb uniques: " << unique << std::endl;
 		(!Best.Valide) ? std::cout << "***NON Valide\n": std::cout << endl;  
 	}while (LAlgo.CptEval < LAlgo.NB_EVAL_MAX);			//**NE PAS ENLEVER
@@ -167,6 +166,7 @@ int main(int NbParam, char* Param[])
 	
 	LibererMemoireFinPgm(Pop, PopEnfant, Best, LeProb, LAlgo);
 	//system("PAUSE");
+	
 	return 0;
 }
 
@@ -277,131 +277,104 @@ TSolution Croisement(TSolution Parent1, TSolution Parent2, TProblem unProb, TAlg
 //**A DEFINIR PAR L'ETUDIANT*******************************************************************************
 //**NB: IL FAUT RESPECTER LA DEFINITION DES PARAMETRES
 //********************************************************************************************************* 
-void Remplacement(std::vector<TSolution> &Parents, std::vector<TSolution> Enfants, TProblem unProb, TAlgo unAlgo)
+int Remplacement(std::vector<TSolution> &Parents, std::vector<TSolution> Enfants, TProblem unProb, TAlgo unAlgo)
 {
-	//METHODE ACTUELLE BIDON: La population Parent demeure inchang�e   -    a modifier
-
-	//INFOS pour d�finir votre methode de remplacement...
-
-	//**Declaration et dimension dynamique d'une population temporaire pour contenir tous les parents + les enfants
-	//std::vector<TSolution> Temporaire;
-	//Temporaire.resize(unAlgo.TaillePop + unAlgo.TaillePopEnfant);
-	//**Pour trier toute la population temporaire, il suffit de faire l'appel suivant: 	TrierPopulation(Temporaire, 0, unAlgo.TaillePop+unAlgo.TaillePopEnfant);
-
-	//**A LA FIN: Liberation de la population temporaire
-	//int i;
-	//for (i = 0; i < Temporaire.size(); i++)
-	//	Temporaire[i].Seq.clear();
-	//Temporaire.clear();
-
-	// Remplacement parfaitement élitiste pour commencer
-
-	
-	// On ajoute tous les enfants à la population de parents
-	/*
-	Parents.reserve(unAlgo.TaillePop + unAlgo.TaillePopEnfant);
-	
-	for (int i = 0; i < unAlgo.TaillePopEnfant; i++) {
-		Parents.push_back(Enfants[i]);
-	}
-
-	// On trie
-	TrierPopulation(Parents, 0, unAlgo.TaillePop+unAlgo.TaillePopEnfant);
-
-	// On garde uniquement unAlgo.TaillePop meilleures solutions
-	Parents.resize(unAlgo.TaillePop);
-	*/
-
 	// Remplacement sans doublon
-	
 	std::vector<TSolution> Temporaire;
 	Temporaire.reserve(unAlgo.TaillePop + unAlgo.TaillePopEnfant);
 
 	// Ajout des parents, excluant les doublons
 	for (int i = 0; i < unAlgo.TaillePop; i++) {
-		int TmpFctObj = Parents[i].FctObj;
+		TSolution& TmpSol = Parents[i];
 
 		auto pos = std::find_if(
 			Temporaire.begin(),
 			Temporaire.end(),
-			[TmpFctObj](TSolution& sol) {return sol.FctObj == TmpFctObj;}
+			[&TmpSol](TSolution& sol) {
+				if (sol.FctObj == TmpSol.FctObj) {
+					return (sol.Seq == TmpSol.Seq);
+				}
+				else {
+					return false;
+				}
+			}
 		);
 
 		if (pos == Temporaire.end()) {
-			// Aucun n'élément de Temporaire n'a la même fonction objectif
-			Temporaire.push_back(Parents[i]);
-		}
-		else {
-			if (Parents[i].Seq != pos->Seq) {
-				// Un élément de Temporaire a la même fonction objectif, mais pas la même séquence
-				Temporaire.push_back(Parents[i]);
-			}
+			// Aucun n'élément de Temporaire n'a la même séquence
+			Temporaire.push_back(TmpSol);
 		}
 	}
 
-	// Ajout des enfants
+	// Ajout des enfants, excluant les doublons
 	for (int i = 0; i < unAlgo.TaillePopEnfant; i++) {
-		int TmpFctObj = Enfants[i].FctObj;
+		TSolution& TmpSol = Enfants[i];
 
 		auto pos = std::find_if(
 			Temporaire.begin(),
 			Temporaire.end(),
-			[TmpFctObj](TSolution& sol) {return sol.FctObj == TmpFctObj;}
+			[&TmpSol](TSolution& sol) {
+				if (sol.FctObj == TmpSol.FctObj) {
+					return (sol.Seq == TmpSol.Seq);
+				}
+				else {
+					return false;
+				}
+			}
 		);
 
 		if (pos == Temporaire.end()) {
-			// Aucun n'élément de Temporaire n'a la même fonction objectif
-			Temporaire.push_back(Enfants[i]);
-		}
-		else {
-			if (Enfants[i].Seq != pos->Seq) {
-				// Un élément de Temporaire a la même fonction objectif, mais pas la même séquence
-				Temporaire.push_back(Enfants[i]);
-			}
+			// Aucun n'élément de Temporaire n'a la même fonction séquence
+			Temporaire.push_back(TmpSol);
 		}
 	}
 
 	// On trie le vecteur temporaire
 	TrierPopulation(Temporaire, 0, Temporaire.size());
 
+	// On enregistre le nombre de solutions originales dans temporaire
+	int NombreSolutionsOriginales = Temporaire.size();
+
 	// Si le temporaire a plus d'éléments que la population, on garde les meilleurs
-	if (Temporaire.size() >= unAlgo.TaillePop) {
+	if (NombreSolutionsOriginales >= unAlgo.TaillePop) {
 		Temporaire.resize(unAlgo.TaillePop);
 	}
 	// Si le temporaire est plus petit que la population, on ajoute des enfants aléatoirement en double
 	else {
-		int TempSize = Temporaire.size();
-
-		for (int i = TempSize; i < unAlgo.TaillePop; i++) {
-			TSolution Alea = Temporaire[rand() % TempSize];
+		for (int i = NombreSolutionsOriginales; i < unAlgo.TaillePop; i++) {
+			TSolution Alea = Temporaire[rand() % NombreSolutionsOriginales];
 			Temporaire.push_back(Alea);
 		}
 	}
 
 	// On remplace les parents par la population temporaires
 	Parents = Temporaire;
+
+	// On renvoie le nombre de solutions originales
+	return NombreSolutionsOriginales;
 }
 
 int CalculSolutionsOriginales(vector<TSolution>& pop) {
 	int count = 0;
 	for (int i = 0; i < pop.size(); i++) {
-		int TmpFctObj = pop[i].FctObj;
+		TSolution& TmpSol = pop[i];
 
 		auto pos = std::find_if(
 			pop.begin(),
 			pop.begin() + i,
-			[TmpFctObj](TSolution& sol) {return sol.FctObj == TmpFctObj;}
+			[&TmpSol](TSolution& sol) {
+				if (sol.FctObj == TmpSol.FctObj) {
+					return (sol.Seq == TmpSol.Seq);
+				}
+				else {
+					return false;
+				}
+			}
 		);
 
 		if (pos == pop.begin() + i) {
-			// Aucun n'élément de n'a la même fonction objectif
+			// Aucun n'élément de n'a la même fonction séquence
 			count++;
-		}
-		else {
-			if (pop[i].Seq != pos->Seq) {
-				// Un élément de Temporaire a la même fonction objectif, mais pas la même séquence
-				count++;
-			}
 		}
 	}
 	return count;
