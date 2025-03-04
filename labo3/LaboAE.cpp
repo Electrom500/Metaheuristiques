@@ -64,6 +64,9 @@ int Remplacement(std::vector<TSolution> &Parents, std::vector<TSolution> Enfants
 
 int CalculSolutionsOriginales(vector<TSolution>& pop);
 
+// Ajouter les résultats dans un fichier CSV pour une meilleure facilité d'analyse avec un programme externe
+void AjouterResultatsFichierCSV(const TSolution uneSol, TProblem unProb, TAlgo unAlgo, std::string FileName, int NombreSolutionsUniques);
+
 //******************************************************************************************
 // Fonction main
 //*****************************************************************************************
@@ -79,6 +82,8 @@ int main(int NbParam, char* Param[])
 	int i;
 	double Alea;
 	string NomFichier;
+	string FichierSortie;
+	bool Verbose;
 
 	//**Lecture des param�tres
 	NomFichier.assign(Param[1]);
@@ -88,6 +93,20 @@ int main(int NbParam, char* Param[])
 	LAlgo.NB_EVAL_MAX		= atoi(Param[5]);
 	LAlgo.TaillePopEnfant	= (int)ceil(LAlgo.TaillePop * LAlgo.ProbCr);
 	LAlgo.Gen = 0;
+
+	if (NbParam > 6) {
+		FichierSortie.assign(Param[6]);
+	}
+	else {
+		FichierSortie = "resultats.csv";
+	}
+
+	if (NbParam > 7) {
+		Verbose = atoi(Param[7]);
+	}
+	else {
+		Verbose = true;
+	}
 
 	srand(GetTickCount()); //**Precise un germe pour le generateur aleatoire (horloge en millisecondes)
 
@@ -112,8 +131,11 @@ int main(int NbParam, char* Param[])
 	Best = Pop[0];
 	LAlgo.FctObjSolDepart = Pop[0].FctObj;
 	int unique = CalculSolutionsOriginales(Pop);
-	std::cout << "(Pop Ini) Best OBJ: " << Best.FctObj << "    Nb uniques: " << unique << std::endl;
-	(!Best.Valide) ? std::cout << "***NON Valide\n" : std::cout << endl;
+
+	if (Verbose) {
+		std::cout << "(Pop Ini) Best OBJ: " << Best.FctObj << "    Nb uniques: " << unique << std::endl;
+		(!Best.Valide) ? std::cout << "***NON Valide\n" : std::cout << endl;
+	}
 
 	//**Boucle principale de l'algorithme evolutionnaire
 	do 
@@ -155,14 +177,20 @@ int main(int NbParam, char* Param[])
 		
 		//**Conservation de la meilleure solution
 		if (Pop[0].Valide && (Pop[0].FctObj < Best.FctObj)) Best = Pop[0];
-																					
-		std::cout << "(Gen#" << setw(3) << LAlgo.Gen << ") Best OBJ: " << Best.FctObj << "    Nb uniques: " << unique << std::endl;
-		(!Best.Valide) ? std::cout << "***NON Valide\n": std::cout << endl;  
+		
+		if (Verbose) {
+			std::cout << "(Gen#" << setw(3) << LAlgo.Gen << ") Best OBJ: " << Best.FctObj << "    Nb uniques: " << unique << std::endl;
+			(!Best.Valide) ? std::cout << "***NON Valide\n": std::cout << endl;
+		}
 	}while (LAlgo.CptEval < LAlgo.NB_EVAL_MAX);			//**NE PAS ENLEVER
 
-	AfficherPopulation(Pop, LAlgo.Gen, LeProb);
-	AfficherResultats (Best, LeProb, LAlgo);			//**NE PAS ENLEVER
+	if (Verbose) {
+		AfficherPopulation(Pop, LAlgo.Gen, LeProb);
+		AfficherResultats (Best, LeProb, LAlgo);			//**NE PAS ENLEVER
+	}
+
 	AfficherResultatsFichier (Best, LeProb, LAlgo, "Resultats.txt");
+	AjouterResultatsFichierCSV(Best, LeProb, LAlgo, FichierSortie, unique);
 	
 	LibererMemoireFinPgm(Pop, PopEnfant, Best, LeProb, LAlgo);
 	//system("PAUSE");
@@ -378,4 +406,47 @@ int CalculSolutionsOriginales(vector<TSolution>& pop) {
 		}
 	}
 	return count;
+}
+
+// Cette fonction crée un fichier CSV ou ajoute à ce fichier les informations de la solution finale trouvée
+// Ces informations sont formatées en CSV de façon à faciliter l'analyse par un programme exerne
+void AjouterResultatsFichierCSV(const TSolution uneSol, TProblem unProb, TAlgo unAlgo, std::string FileName, int NombreSolutionsUniques) {
+	// Vérifier si le fichier existe
+	std::ifstream ReadFileStream;
+	ReadFileStream.open(FileName);
+	bool FileExists = ReadFileStream.good();
+	ReadFileStream.close();
+
+	// Ouvrir le fichier en mode "append"
+	std::ofstream FileStream;
+	FileStream.open(FileName, std::ios::app);
+
+	// Si c'est la première fois qu'on ouvre le fichier, on écrit aussi l'entête
+	if (!FileExists) {
+		FileStream << "Nom,NbVilles,TaillePop,TaillePopEnfant,ProbCr,ProbMut,Gen,NbSolUniques,TotalEval,MaxEval,FctObjDepart,FctObjFinale,Etat,EvalPourTrouver,Seq" << std::endl;
+	}
+
+	// Ajouter les informations sur une seule ligne
+	FileStream << unProb.Nom << ",";
+	FileStream << unProb.NbVilles << ",";
+	FileStream << unAlgo.TaillePop << ",";
+	FileStream << unAlgo.TaillePopEnfant << ",";
+	FileStream << unAlgo.ProbCr << ",";
+	FileStream << unAlgo.ProbMut << ",";
+	FileStream << unAlgo.Gen << ",";
+	FileStream << NombreSolutionsUniques << ",";
+	FileStream << unAlgo.CptEval << ",";
+	FileStream << unAlgo.NB_EVAL_MAX << ",";
+	FileStream << unAlgo.FctObjSolDepart << ",";
+	FileStream << uneSol.FctObj << ",";
+	FileStream << uneSol.Valide << ",";
+	FileStream << uneSol.NbEvaltoGet << ",";
+
+	for (int i = 0; i < unProb.NbVilles - 1; i++) {
+		FileStream << uneSol.Seq[i] << "-";
+	}
+	FileStream << uneSol.Seq[unProb.NbVilles - 1] << std::endl;
+
+	// Fermer le fichier
+	FileStream.close();
 }
