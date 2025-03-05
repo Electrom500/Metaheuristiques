@@ -32,7 +32,7 @@ valeur_minimale = pd.Series(
     name="MinVal",
 )
 
-fichiers_resultats = [f"resultats_calibration_{6874+i}.txt" for i in range(0, 16)]
+fichiers_resultats = [f"resultats_calibration_{6874+i}.csv" for i in range(0, 16)]
 
 resultats = pd.concat([pd.read_csv(f) for f in fichiers_resultats], axis=0)
 
@@ -64,13 +64,19 @@ best_resultats = resultats_sort.loc[
 
 ########################################################################################
 # Affichage des valeurs des paramètres pour les meilleures combinaisons
-best_combinaisons = res_ecart_quad.reset_index().iloc[:50]
+best_combinaisons = res_ecart_quad.reset_index().iloc[:75]
 param_labels = [
     "Taille de population",
     "Proportion de croisements",
     "Probabilité de mutation",
 ]
 param_widths = [20, 0.1, 0.1]
+
+param_xlim = [
+    (0, 1100),
+    (0, 11),
+    (-0.1, 1.1),
+]
 
 fig, axes = plt.subplot_mosaic("AB;C.", layout="constrained")
 
@@ -88,7 +94,9 @@ for i, (p, ax) in enumerate(zip(params, axes.values())):
     ax.set_xlabel(param_labels[i])
     ax.set_ylabel("Nombre d'occurrences")
 
-    #ax.set_xticks(counts.index)
-    #ax.set_xlim(0, 50)
+    ax.set_xlim(*param_xlim[i])
+
+    if i == 2:
+        ax.set_xticks(np.linspace(0, 1, 6))
 
 fig.savefig("param_distributions.png", dpi=300)

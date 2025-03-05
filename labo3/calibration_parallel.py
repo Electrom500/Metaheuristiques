@@ -31,7 +31,7 @@ def execute(args):
     process_id = os.getpid()
     for _ in range(NbRepetitions):
         os.system(
-            f"dist/release/LaboAE {i} {pop} {pcr} {pmut} 50000 resultats_calibration_{process_id}.csv 0"
+            f"dist/release/LaboAE {i} {pop} {pcr:0.2f} {pmut:0.2f} 50000 resultats_calibration_{process_id}.csv 0"
         )
 
     return 0
