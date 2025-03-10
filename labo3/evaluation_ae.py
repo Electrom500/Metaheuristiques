@@ -16,13 +16,13 @@ instances = np.array(
     dtype=object,
 )
 
-NbRepetitions = 10
+NbRepetitions = 250
 
 
 def execute(instance):
     for _ in range(NbRepetitions):
         os.system(
-            f"dist/release/LaboAE {instance} 250 0.2 0.2 50000 resultats_ae_{instance}.csv 0"
+            f"dist/release/LaboAE {instance} 250 0.2 0.2 50000 resultats_ae_{instance[:-4]}.csv 0"
         )
 
     return 0
