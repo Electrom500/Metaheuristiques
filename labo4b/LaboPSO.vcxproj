@@ -131,7 +131,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LaboPSO.cpp" />
-    <ClCompile Include="LaboPSO_binaire.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

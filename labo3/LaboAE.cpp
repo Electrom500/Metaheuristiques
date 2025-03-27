@@ -1,6 +1,5 @@
 #include "Entete.h"
 
-#ifdef _WIN32
 #pragma comment (lib,"GeneticDLL.lib")
 //%%%%%%%%%%%%%%%%%%%%%%%%% IMPORTANT: %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 //Le fichier de probleme (.txt) et les fichiers de la DLL (GeneticDLL.dll et GeneticDLL.lib) doivent se trouver dans le r�pertoire courant du projet pour une ex�cution � l'aide du compilateur. 
@@ -52,9 +51,6 @@ extern "C" _declspec(dllimport) void AfficherResultatsFichier(TSolution uneSol, 
 
 //DESCRIPTION:	Liberation de la memoire allouee dynamiquement
 extern "C" _declspec(dllimport) void LibererMemoireFinPgm(std::vector<TSolution>& unePop, std::vector<TSolution>& unePopEnfant, TSolution& uneBest, TProblem& unProb, TAlgo unAlgo);
-#else
-#include "SOP.h"
-#endif
 
 //*****************************************************************************************
 // Prototype des fonctions locales 
@@ -238,63 +234,6 @@ TSolution Croisement(TSolution Parent1, TSolution Parent2, TProblem unProb, TAlg
 	return (Enfant);
 }
 
-/*
-TSolution Croisement(TSolution Parent1, TSolution Parent2, TProblem unProb, TAlgo &unAlgo)
-{
-	//**INDICE: Le sous-programme rand() g�n�re al�atoirement un nombre entier entre 0 et RAND_MAX inclusivement.
-	//**Pour tirer un nombre al�atoire entier entre 0 et MAX-1 inclusivement, il suffit d'utiliser l'instruction suivante : NombreAleatoire = rand() % MAX;
-	
-	TSolution Enfant;
-	Enfant.Seq.reserve(unProb.NbVilles);
-
-	// Pige de deux points de coupure qui ne peuvent pas être à la même place
-	int coupure1, coupure2;
-
-	do {
-		coupure1 = 2 + (rand() % (unProb.NbVilles - 4));
-		coupure2 = 2 + (rand() % (unProb.NbVilles - 4));
-	} while (coupure1 == coupure2);
-
-	if (coupure1 > coupure2) {
-		int tmp_coupure = coupure2;
-		coupure2 = coupure1;
-		coupure1 = tmp_coupure;
-	}
-
-	// On copie la première sous-séquence du parent 1
-	for (int i = 0; i < coupure1; i++) {
-		Enfant.Seq.push_back(Parent1.Seq[i]);
-	}
-
-	// On itère sur le parent 2 et on ajoute les villes qui ne sont pas dans la
-	// sous-séquence, dans l'ordre d'apparition pour le parent 2.
-	for (int i = 0; i < coupure2; i++) {
-		// On cherche si la ville 'i' est dans la sous-séquence du parent 1
-		auto pos = std::find(Parent1.Seq.begin(), Parent1.Seq.begin() + coupure1, Parent2.Seq[i]);
-
-		// Si l'élément du parent 2 n'est pas dans la sous-séquence, on l'ajoute à l'enfant
-		if (pos == Parent1.Seq.begin() + coupure1) {
-			Enfant.Seq.push_back(Parent2.Seq[i]);
-		}
-	}
-
-	// On refait la même chose avec la fin de la séquence du parent 1
-	for (int i = coupure1; i < unProb.NbVilles; i++) {
-		// On cherche si la ville 'i' est dans la sous-séquence du parent 2
-		auto pos = std::find(Parent2.Seq.begin() + coupure1, Parent2.Seq.begin() + coupure2, Parent2.Seq[i]);
-
-		// Si l'élément du parent 1 n'est pas dans la sous-séquence, on l'ajoute à l'enfant
-		if (pos == Parent2.Seq.begin() + coupure2) {
-			Enfant.Seq.push_back(Parent1.Seq[i]);
-		}
-	}
-
-	//**NE PAS ENLEVER
-	EvaluerSolution(Enfant, unProb, unAlgo);
-	//AfficherUneSolution(Enfant, unProb);
-	return (Enfant);
-}
-*/
 //*********************************************************************************************************
 //Realise le REMPLACEMENT de la population pour la prochaine generation. Cette fonction prend les TaillePop 
 //solutions de la population "Parents" et les TaillePopEnfant solutions de la population "Enfants" et

@@ -48,6 +48,7 @@ tParticule* TrouverMeilleureInformatrice(tParticule &Particule, tAlgo &unPSO);
 double AleaDouble(double a, double b);
 //### Pour MAXSAT
 double EvaluerSolutionMAXSAT(tPosition Pos, tProblem unProb);
+void CalculePositionSigmoide(tParticule& Particule, const tProblem& Prob);
 
 //******************************************************************************************
 // Fonction main
@@ -67,8 +68,8 @@ int main(int NbParam, char *Param[])
 	LePSO.C2			= atof(Param[3]);
 	LePSO.C3			= atof(Param[4]);
 	LePSO.NB_EVAL_MAX	= atoi(Param[5]);
-	//NomFichier.assign(Param[6]);								//### Pour MAXSAT : doit etre active pour MAXSAT
-	LePSO.Precision		= 0.00001;								//### pour MAXSAT : peut etre retire pour MAXSAT
+	NomFichier.assign(Param[6]);								//### Pour MAXSAT : doit etre active pour MAXSAT
+	//LePSO.Precision		= 0.00001;								//### pour MAXSAT : peut etre retire pour MAXSAT
 	LePSO.Iter			= 0;
 	LePSO.CptEval		= 0;
 		
@@ -76,11 +77,11 @@ int main(int NbParam, char *Param[])
 	cout.setf(ios::fixed|ios::showpoint);
 	
 	//**Spécifications du problème a traiter
-	LeProb.Nom = SCHWEFEL;										//**Specifie le probleme traite
+	LeProb.Nom = MAXSAT;										//**Specifie le probleme traite
 	InitialisationIntervalleVariable(LeProb);
 	
 	//**Lecture du fichier de MAXSAT
-	//LectureProblemeMAXSAT(NomFichier, LeProb, LePSO);			//### Pour MAXSAT
+	LectureProblemeMAXSAT(NomFichier, LeProb, LePSO);			//### Pour MAXSAT
 	//AfficherProblemeMAXSAT(LeProb);							//### Pour MAXSAT
 		
 	//**Dimension du tableaux de l'essaim selon le nombre de particules
@@ -92,17 +93,19 @@ int main(int NbParam, char *Param[])
 	cout << "Iter# " << setw(3) << LePSO.Iter; AfficherUneSolution(Best, LeProb, true);
 
 	//**Boucle principale du PSO
-	while (Best.FctObj > LePSO.Precision && LePSO.CptEval < LePSO.NB_EVAL_MAX) 	//### POUR MAXSAT : NE PAS ENLEVER LA CONDITION SUR LE NOMBRE D'EVALUATIONS
+	while (LePSO.CptEval < LePSO.NB_EVAL_MAX) 	//### POUR MAXSAT : NE PAS ENLEVER LA CONDITION SUR LE NOMBRE D'EVALUATIONS
 	{																			//### POUR MAXSAT : ENLEVER CONDITION D'ARRET SUR PRECISION						
 		
 		LePSO.Iter++;
 		DeplacerEssaim(Essaim, LeProb, LePSO, Best);  
 		//AfficherEssaim(Essaim, LePSO.Iter, LeProb);
-		//cout << "Iter# " << setw(3) << LePSO.Iter;	AfficherUneSolution(Best, LeProb, false);
+		cout << "Iter# " << setw(3) << LePSO.Iter;	AfficherUneSolution(Best, LeProb, false);
 	};
 
 	AfficherResultats (Best, LeProb, LePSO);									//**NE PAS ENLEVER
 	AfficherResultatsFichier (Best, LeProb, LePSO, "Resultats.txt");
+	//AfficherEssaim(Essaim, LePSO.Iter, LeProb);
+
 	LibererMemoireFinPgm(Essaim, LeProb, LePSO);
 
 	//system("PAUSE");
@@ -117,7 +120,9 @@ void InitialisationIntervalleVariable(tProblem &unProb)
 	{
 		case ALPINE:	unProb.Xmin = -10.0;	unProb.Xmax = 10.0;		unProb.D = 5; break;
 		case SPHERE:	unProb.Xmin = -5.12;	unProb.Xmax = 5.12;		unProb.D = 10; break;
-		case SCHWEFEL:	unProb.Xmin = -500.0;	unProb.Xmax = 500.0;	unProb.D = 10; break; //***** MODIF EquipeH01
+		case SCHWEFEL:	unProb.Xmin = -500.0;	unProb.Xmax = 500.0;	unProb.D = 5; break; //***** MODIF EquipeH01
+		case MAXSAT:	unProb.Xmin = -4;		unProb.Xmax = 4;		unProb.D = 5; break; //***** MODIF EquipeH01
+
 		default:		unProb.Xmin = 0.0;		unProb.Xmax = 0.0;		unProb.D = 0; break; 
 	}
 }
@@ -181,7 +186,7 @@ tPosition InitialisationEssaim(std::vector<tParticule> &unEssaim, tProblem unPro
 		if (i == 0)	
 			Meilleure = unEssaim[i].Pos;
 		else
-			if (unEssaim[i].Pos.FctObj < Meilleure.FctObj)
+			if (unEssaim[i].Pos.FctObj > Meilleure.FctObj) //***** MODIF EquipeH01
 				Meilleure = unEssaim[i].Pos;
 	}	
 	unPSO.FctObjSolDepart = Meilleure.FctObj;
@@ -197,9 +202,9 @@ void InitialisationPositionEtVitesseAleatoire(tParticule &Particule, tProblem un
 
 	for(d=0; d<unProb.D; d++)
 	{
-		Particule.Pos.X[d] = AleaDouble(unProb.Xmin, unProb.Xmax);
 		Particule.V[d] = AleaDouble(unProb.Xmin, unProb.Xmax);
 	}
+	CalculePositionSigmoide(Particule, unProb); //***** MODIF EquipeH01
 }
 
 //-----------------------------------------------------------------------
@@ -212,7 +217,7 @@ void InitialisationInformatrices(std::vector<tParticule> &unEssaim, tAlgo &unPSO
 	//Methode BIDON: une particule a comme informatrice seulement elle-meme (n'apporte aucune information supplementaire)
 	
 	//A DETERMINER: nombre d'informatrices pour une particule
-	unPSO.NbInfo = 4;		
+	unPSO.NbInfo = 8;		
 	
 	//A DETERMINER: configuration des informatrices pour chaque particule
 	for (i = 0; i < unPSO.TailleEssaim; i++)
@@ -250,11 +255,11 @@ void DeplacerEssaim(std::vector<tParticule> &unEssaim, tProblem unProb, tAlgo &u
 		//Evaluation de la nouvelle position-----------------------------
 		EvaluationPosition(unEssaim[i].Pos, unProb, unPSO);
 		//Mise a jour de la meilleure position de la particule-----------
-		if(unEssaim[i].Pos.FctObj <= unEssaim[i].BestPos.FctObj)
+		if(unEssaim[i].Pos.FctObj >= unEssaim[i].BestPos.FctObj) //***** MODIF EquipeH01 
 		{
 			unEssaim[i].BestPos = unEssaim[i].Pos;
 			//Memorisation du meilleur resultat atteint jusqu'ici------------
-			if(unEssaim[i].BestPos.FctObj < Meilleure.FctObj)
+			if(unEssaim[i].BestPos.FctObj > Meilleure.FctObj) //***** MODIF EquipeH01
 				Meilleure = unEssaim[i].BestPos;
 		}
 	}
@@ -275,25 +280,21 @@ void DeplacerUneParticule(tParticule &Particule, tProblem unProb, tAlgo &unPSO)
 		Particule.V[d] =	unPSO.C1 * Particule.V[d] + 
 							AleaDouble(0,unPSO.C2) * (Particule.BestPos.X[d] - Particule.Pos.X[d]) + 
 							AleaDouble(0,unPSO.C3) * (MeilleureInfo->BestPos.X[d] - Particule.Pos.X[d]);
-
-	//Mise a jour de la nouvelle position--------------------------------
-	for(d=0; d<unProb.D; d++)
-		Particule.Pos.X[d] += Particule.V[d];
-
-	//Confinement d'intervalle pour la valeur des positions--------------
-	for(int d=0; d<unProb.D; d++)
+	
+	//Confinement d'intervalle pour la valeur des vitesses--------------
+	for (int d = 0; d < unProb.D; d++) //***** MODIF EquipeH01
 	{
-		if(Particule.Pos.X[d] < unProb.Xmin)
+		if (Particule.V[d] < unProb.Xmin)
 		{
-			Particule.Pos.X[d] = unProb.Xmin;
-			Particule.V[d] = 0; //Remise a zéro de la vitesse
+			Particule.V[d] = unProb.Xmin; //Remise a -4 de la vitesse
 		}
-		if(Particule.Pos.X[d] > unProb.Xmax)
+		else if (Particule.V[d] > unProb.Xmax)
 		{
-			Particule.Pos.X[d] = unProb.Xmax;
-			Particule.V[d] = 0; //Remise a zéro de la vitesse
+			Particule.V[d] = unProb.Xmax; //Remise a 4 de la vitesse
 		}
 	}
+	CalculePositionSigmoide(Particule, unProb); //***** MODIF EquipeH01
+
 }
 
 //-----------------------------------------------------------------------
@@ -308,7 +309,7 @@ tParticule* TrouverMeilleureInformatrice(tParticule &Particule, tAlgo &unPSO)
 	Valeur = Particule.Info[0]->BestPos.FctObj;
 	for(k=1; k<unPSO.NbInfo; k++)
 	{
-		if(Particule.Info[k]->BestPos.FctObj < Valeur)
+		if(Particule.Info[k]->BestPos.FctObj > Valeur) //***** MODIF EquipeH01
 		{
 			Valeur = Particule.Info[k]->BestPos.FctObj;
 			Rang = k;
@@ -327,9 +328,36 @@ double AleaDouble(double a, double b)
 
 //### POUR MAXSAT
 //Fonction d'evaluation de la fonction objectif pour une solution du problème de MAXSAT
-double EvaluerSolutionMAXSAT(tPosition Pos, tProblem unProb)
+double EvaluerSolutionMAXSAT(tPosition Pos, tProblem unProb)  //***** MODIF EquipeH01
 {
-	//***** A DEFINIR PAR L'ETUDIANT: Calcul de la somme des poids des clauses positives *****
-	//Méthode BIDON: la fonction retourne 0 
-	return 0;
+	double fct_obj = 0;
+	for (int k = 0;k < unProb.NbClause;k++) {
+		bool succes = false;
+		const tClause& Clause_temp = unProb.Clause[k];
+
+		for (int i = 0; i < Clause_temp.NbVar;i++) {
+			int litteral = Clause_temp.Litt[i];
+			if ( (litteral > 0 && (Pos.X[litteral - 1] == 1)) || 
+				(litteral < 0 && (Pos.X[-litteral - 1] == 0)) ) {
+
+				succes = true;
+				break;
+
+			}
+		}
+		if (succes) {
+			fct_obj += Clause_temp.Poids;
+		}
+	}
+
+	return fct_obj;
+}
+
+//***** MODIF EquipeH01
+void CalculePositionSigmoide(tParticule &Particule, const tProblem &Prob) {
+	for (int d = 0; d < Prob.D; d++) {
+		double seuil = 1 / (1 + exp(-Particule.V[d]));
+
+		Particule.Pos.X[d] = (AleaDouble(0, 1) > seuil) ;
+	}
 }
