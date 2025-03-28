@@ -217,7 +217,7 @@ void InitialisationInformatrices(std::vector<tParticule> &unEssaim, tAlgo &unPSO
 	//Methode BIDON: une particule a comme informatrice seulement elle-meme (n'apporte aucune information supplementaire)
 	
 	//A DETERMINER: nombre d'informatrices pour une particule
-	unPSO.NbInfo = 8;		
+	unPSO.NbInfo = 4;		
 	
 	//A DETERMINER: configuration des informatrices pour chaque particule
 	for (i = 0; i < unPSO.TailleEssaim; i++)
@@ -358,6 +358,6 @@ void CalculePositionSigmoide(tParticule &Particule, const tProblem &Prob) {
 	for (int d = 0; d < Prob.D; d++) {
 		double seuil = 1 / (1 + exp(-Particule.V[d]));
 
-		Particule.Pos.X[d] = (AleaDouble(0, 1) > seuil) ;
+		Particule.Pos.X[d] = (AleaDouble(0, 1) < seuil);
 	}
 }
