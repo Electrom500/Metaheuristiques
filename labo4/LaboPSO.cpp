@@ -204,7 +204,7 @@ void InitialisationPositionEtVitesseAleatoire(tParticule &Particule, tProblem un
 
 //-----------------------------------------------------------------------
 //DESCRIPTION: Determine le groupement d'informatrices des particules (et le nombre d'informatrices)
-void InitialisationInformatrices(std::vector<tParticule> &unEssaim, tAlgo &unPSO)
+void InitialisationInformatrices(std::vector<tParticule> &unEssaim, tAlgo &unPSO) //***** MODIF EquipeH01
 {
 	int i;
 
